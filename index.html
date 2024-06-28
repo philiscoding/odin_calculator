@@ -6,19 +6,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Odin-Calculator</title>
     <link rel="stylesheet" href="styles.css">
-    <script src="calculator.js" defer></script>
+    <script src="calculator.js" type="module" defer></script>
+    <script src="dom.js" type="module" defer></script>
 </head>
 
 <body>
     <div class="calculator">
-        <div class="display">0</div>
+        <div class="display"></div>
 
         <div class="buttons-container">
 
             <div class="numbers-container">
                 <button class="clear">AC</button>
                 <button class="undo">UNDO</button>
-                <button class="operator">/</button>
+                <button data-attribute="operator" class="operator">/</button>
 
                 <button class="number">1</button>
                 <button class="number">2</button>
@@ -37,10 +38,10 @@
             </div>
 
             <div class="operator-container">
-                <button class="operator">x</button>
-                <button class="operator">-</button>
-                <button class="operator">+</button>
-                <button class="operator equal">=</button>
+                <button data-attribute="operator" class="operator multiply">x</button>
+                <button data-attribute="operator"class="operator subtract">-</button>
+                <button data-attribute="operator"class="operator add">+</button>
+                <button class="equal">=</button>
             </div>
 
         </div>

@@ -1,7 +1,4 @@
 /*Operators */
-
-
-
 function add(a, b) {
     return a + b;
 }
@@ -26,99 +23,122 @@ function operate(a, b, operator) {
     return operator(a, b);
 }
 
-//add event listeners to all buttons
-//if number buttons are clicked, update display
-//if AC -> clear display
-//if undo -> remove last number pressed from display
-//if point -> add point
-//if equal -> perform calculation
 
 /*VARIABLES */
 let firstNum;
 let secondNum;
 let operator;
-let displayValue = "";
-let result;
+let displayValue;
+let displayText = "";
 
 
-/* DOM STUFF */
+
+//if second number does not exist & last item of display
+//is operator, do nothing
+//when = is clicked -> perform calculation
+//if there is only a number and equal is clicked -> do nothing
+//if there is a number and operator -> do nothing
+
+
+
+
+//whenever a number is clicked -> update display
 const numbers = document.querySelectorAll(".number");
-const display = document.querySelector(".display");
 const operators = document.querySelectorAll(".operator");
+const display = document.querySelector(".display");
+const equal = document.querySelector(".equal");
 
-
-numbers.forEach(button => {
-    button.addEventListener("click", updateDisplay);
+//whenever a number is clicked -> update display
+numbers.forEach(number => {
+    number.addEventListener("click", updateDisplay, );
 });
+
+//set number values to do math
+numbers.forEach(number => {
+    number.addEventListener("click", setValues)
+});
+
+
+//whenever operator is clicked -> update display
 operators.forEach(operator => {
     operator.addEventListener("click", updateDisplay)
-})
+});
 
-//loop over operators
-//attach event listeners
-//when clicked, update the display with operator that was clicked
-//also update firstNum and operator
+//set operator value to do math
+operators.forEach(operator => {
+    operator.addEventListener("click", setValues)
+});
+
+equal.addEventListener("click", updateDisplay);
 
 function updateDisplay(e) {
+    let clickedBtn = e.target;
+    if (clickedBtn.dataset.attribute != "equal") {
+        displayText += e.target.textContent;
+        display.textContent = displayText;
+    }
 
-    if (e.target.textContent === "0") {
-        //handle buggy 0 stuff
-        switch (displayValue) {
-            case "0":
-                return;
+
+    if (clickedBtn.dataset.attribute == "equal") {
+        display.textContent = performOperation();
+    }
+}
+
+function performOperation() {
+    if (firstNum && secondNum && operator) {
+        let result = operate(firstNum, secondNum, operator);
+        displayValue = result;
+        firstNum = result;
+        secondNum = null;
+        operator = null;
+        return result;
+    }
+}
+
+function resetValues() {
+
+}
+
+//sets firstNum, secondNum, operator
+function setValues(e) {
+    let clickedBtn = e.target;
+
+    //Sets display values in order to get numbers later
+    if (displayValue === undefined) {
+        displayValue = +clickedBtn.textContent;
+    } else {
+        displayValue += clickedBtn.textContent;
+    }
+
+    //Sets first and second number
+    if (clickedBtn.dataset.attribute == "number") {
+        if (!operator) {
+            firstNum = +displayValue;
+            console.log(`first num: ${firstNum}`);
+            console.log(`operator: ${operator}`);
+        } else {
+            secondNum = +displayValue.slice(firstNum.toString().length + 1);
+            console.log("length:" + firstNum.length);
+            console.log(`first num: ${firstNum}, operator: ${operator.toString()}, second num: ${secondNum}`);
         }
     }
 
-    if (e.target.dataset.attribute == "operator") {
-        // cant chain multiple operators in a row
-        switch (displayValue.at(-1)) {
-            case "/":
-            case "-":
+    //Sets operator if operator if operator button is clicked
+    if (clickedBtn.dataset.attribute == "operator") {
+        switch (clickedBtn.textContent) {
             case "+":
+                operator = add;
+                break;
+            case "-":
+                operator = subtract;
+                break;
             case "x":
-                return
+                operator = multiply;
+                break;
+            case "/":
+                operator = divide;
+                break;
         }
-
+        console.log(operator);
     }
-
-    display.textContent += e.target.textContent;
-    displayValue += e.target.textContent;
-
-    if (e.target.dataset.attribute === "operator") {
-
-        if (typeof firstNum == "number") {
-            secondNum = +displayValue.slice(0, displayValue.length - 1);
-            operator = displayValue.at(-1);
-
-            switch (operator) {
-                case "/":
-                    operator = divide;
-                    break;
-                case "x":
-                    operator = multiply;
-                    break;
-                case "+":
-                    operator = add;
-                    break;
-                case "-":
-                    operator = subtract;
-            }
-
-
-        }
-
-        firstNum = +displayValue.slice(0, displayValue.length - 1);
-        operator = displayValue.at(-1);
-
-        if (firstNum && secondNum && operator) {
-            let result = operate(firstNum, secondNum, operator);
-            console.log(result);
-        }
-
-        displayValue = "";
-
-    }
-
-
-
 }

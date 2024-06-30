@@ -31,6 +31,8 @@ const numbers = document.querySelectorAll(".number");
 const operators = document.querySelectorAll(".operator");
 const display = document.querySelector(".display");
 const equal = document.querySelector(".equal");
+const clear = document.querySelector(".clear");
+const undoBtn = document.querySelector(".undo");
 
 /*update display*/
 buttons.forEach(button => {
@@ -39,6 +41,12 @@ buttons.forEach(button => {
 
 /*update display*/
 equal.addEventListener("click", updateDisplay);
+
+/*reset display */
+clear.addEventListener("click", resetDisplay);
+
+//undo button
+undoBtn.addEventListener("click", undo);
 
 //set number values to do math
 numbers.forEach(number => {
@@ -52,49 +60,80 @@ operators.forEach(operator => {
 
 
 function updateDisplay(e) {
-    let clickedBtn = e.target;
+    let button = e.target;
+    let buttonType = e.target.dataset.attribute;
 
-    if (!displayValue) {
-        displayValue = clickedBtn.textContent;
+    if (displayValue === undefined) {
+        displayValue = buttonType.textContent;
         display.textContent = displayValue;
-    } else if (clickedBtn.dataset.attribute == "number" ||
-        clickedBtn.dataset.attribute == "operator") {
-        displayValue += clickedBtn.textContent;
+    } else if (buttonType == "number" ||
+        buttonType == "operator") {
+        displayValue += button.textContent;
         display.textContent = displayValue;
     }
 
     /* press equal sign */
-    if (clickedBtn.dataset.attribute == "equal") {
-        if (firstNum && secondNum && operator) {
+    if (buttonType == "equal") {
+
+        if (secondNum == 0 && operator == divide) {
+            alert("Don't divide by 0. Resetting display for your own safety.");
+            resetDisplay();
+        } else if (firstNum != undefined && secondNum != undefined && operator) {
             displayValue = performOperation();
             display.textContent = displayValue;
             console.log(`displayValue: ${displayValue}`);
             console.log(`first num: ${firstNum}`);
             console.log(`operator: ${operator}`);
         }
+
     }
 
-    if (firstNum && operator && clickedBtn.dataset.attribute == "operator") {
-        displayValue = displayValue.slice(0, displayValue.length - 2) + clickedBtn.textContent;
+    if (firstNum != undefined && operator && buttonType == "operator") {
+        displayValue = displayValue.slice(0, displayValue.length - 2) + button.textContent;
         display.textContent = displayValue;
     }
 
-    if (clickedBtn.dataset.attribute == "operator" && firstNum && secondNum && operator) {
-        displayValue = performOperation() + clickedBtn.textContent;
-        display.textContent = displayValue;
+    if (buttonType == "operator" &&
+        firstNum != undefined &&
+        secondNum != undefined &&
+        operator) {
+        if (secondNum == 0 && operator == divide) {
+            alert("Don't divide by 0. Resetting display for your own safety.");
+            resetDisplay();
+        } else {
+            displayValue = performOperation() + button.textContent;
+            display.textContent = displayValue;
+        }
+
     }
 
-    if (clickedBtn.dataset.attribute ==
+    if (buttonType ==
         "number" &&
         operator &&
-        firstNum &&
-        secondNum) {
+        firstNum != undefined &&
+        secondNum != undefined) {
         display.textContent = displayValue;
     }
+
+}
+
+function resetDisplay() {
+    firstNum = undefined;
+    secondNum = undefined;
+    operator = undefined;
+    displayValue = undefined;
+    display.textContent = "";
+}
+
+function undo() {
+    //should remove last element from display and displayValue
+    displayValue = displayValue.slice(0, -1);
+    display.textContent = displayValue;
+
 }
 
 function performOperation() {
-    if (firstNum && secondNum && operator) {
+    if (firstNum != undefined && secondNum != undefined && operator) {
         let result = operate(firstNum, secondNum, operator);
         firstNum = result;
         secondNum = null;
@@ -104,38 +143,51 @@ function performOperation() {
 }
 
 function setNumbers(e) {
-    let clickedBtn = e.target;
+    let button = e.target;
+    let buttonType = e.target.dataset.attribute;
 
     //sets display if it was empty before
     if (!displayValue) {
-        displayValue = clickedBtn.textContent;
+        displayValue = button.textContent;
         display.textContent = displayValue;
     }
 
-    //Sets first and second number
-    if (clickedBtn.dataset.attribute == "number") {
+    //sets first number
+    if (buttonType == "number") {
         if (!operator) {
             firstNum = parseInt(displayValue);
-            console.log(`displayValue: ${displayValue}`);
+            if (firstNum == "00") {
+                firstNum = 0;
+                displayValue = "0";
+                display.textContent = displayValue;
+            }
+            console.log(`displayValue: ${ displayValue}`);
             console.log(`first num: ${firstNum}`);
             console.log(`operator: ${operator}`);
 
-        } else {
+        }
+        //sets second number
+        else {
             secondNum = +displayValue.slice(firstNum.toString().length + 1);
+            if (secondNum.toString() == "0") {
+                if (button.textContent == "0") {
+                    secondNum = 0;
+                    displayValue = displayValue.slice(0, -1)
+                }
+            }
             console.log(`displayValue: ${displayValue}`);
-            console.log(`first num: ${firstNum}, operator: ${operator.toString()}, second num: ${secondNum}`);
+            console.log(`first num: ${firstNum},operator: ${operator.toString()},second num: ${ secondNum}`);
         }
     }
-
-
 }
+
 //sets operator
 function setOperator(e) {
-    let clickedBtn = e.target;
+    let button = e.target;
+    let buttonType = e.target.dataset.attribute;
 
-    //Sets operator if operator if operator button is clicked
-    if (clickedBtn.dataset.attribute == "operator") {
-        switch (clickedBtn.textContent) {
+    if (buttonType == "operator") {
+        switch (button.textContent) {
             case "+":
                 operator = add;
                 break;

@@ -24,6 +24,8 @@ let firstNum;
 let secondNum;
 let operator;
 let displayValue;
+let isDecimalA = false;
+let isDecimalB = false;
 
 /*DOM ELEMENTS*/
 const buttons = document.querySelectorAll("button");
@@ -100,8 +102,14 @@ function updateDisplay(e) {
             }
         }
     }
-    if(buttonType =="point"){
 
+    if (buttonType == "point") {
+
+        //first number
+        if (!operator && !isDecimalA || operator && !isDecimalB) {
+            displayValue += button.textContent;
+            display.textContent = displayValue;
+        }
     }
 
 }
@@ -111,6 +119,8 @@ function resetDisplay() {
     secondNum = undefined;
     operator = undefined;
     displayValue = undefined;
+    isDecimalA =false;
+    isDecimalB= false;
     display.textContent = "";
 }
 
@@ -127,6 +137,7 @@ function performOperation() {
         firstNum = result;
         secondNum = null;
         operator = null;
+        isDecimalB = false;
         return result;
     }
 }
@@ -141,15 +152,35 @@ function setNumbers(e) {
         display.textContent = displayValue;
     }
 
+
+    if (buttonType == "point") {
+        //set first number decimal
+        if (!operator && !isDecimalA) {
+            isDecimalA = true;
+            firstNum = +displayValue;
+        }
+        //set second number decimal
+        else if (operator) {
+            isDecimalB = true;
+            secondNum = +displayValue.slice(firstNum.toString().length + 1);
+            if (secondNum.toString() == "0") {
+                if (button.textContent == "0") {
+                    secondNum = 0;
+                    displayValue = displayValue.slice(0, -1)
+                }
+            }
+        }
+
+    }
     //sets first number
     if (buttonType == "number") {
         if (!operator) {
             if (firstNum == 0 && button.textContent != "0") {
                 displayValue = button.textContent;
                 display.textContent = displayValue;
-                firstNum = parseInt(displayValue)
+                firstNum = displayValue;
             } else {
-                firstNum = parseInt(displayValue);
+                firstNum = +displayValue;
             }
             if (firstNum == "00") {
                 firstNum = 0;
@@ -174,6 +205,7 @@ function setNumbers(e) {
             console.log(`first num: ${firstNum},operator: ${operator.toString()},second num: ${ secondNum}`);
         }
     }
+
 }
 
 //sets operator
@@ -181,7 +213,7 @@ function setOperator(e) {
     let button = e.target;
     let buttonType = e.target.dataset.attribute;
 
-    //dont set operator as first click
+    //don't set operator as first click
     if (buttonType == "operator") {
         if (displayValue === undefined) {
             return

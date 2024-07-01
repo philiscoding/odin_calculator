@@ -74,45 +74,34 @@ function updateDisplay(e) {
 
     /* press equal sign */
     if (buttonType == "equal") {
-
         if (secondNum == 0 && operator == divide) {
             alert("Don't divide by 0. Resetting display for your own safety.");
             resetDisplay();
         } else if (firstNum != undefined && secondNum != undefined && operator) {
             displayValue = performOperation();
             display.textContent = displayValue;
-            console.log(`displayValue: ${displayValue}`);
-            console.log(`first num: ${firstNum}`);
-            console.log(`operator: ${operator}`);
         }
-
     }
 
-    if (firstNum != undefined && operator && buttonType == "operator") {
-        displayValue = displayValue.slice(0, displayValue.length - 2) + button.textContent;
-        display.textContent = displayValue;
-    }
-
-    if (buttonType == "operator" &&
-        firstNum != undefined &&
-        secondNum != undefined &&
-        operator) {
-        if (secondNum == 0 && operator == divide) {
-            alert("Don't divide by 0. Resetting display for your own safety.");
-            resetDisplay();
-        } else {
-            displayValue = performOperation() + button.textContent;
+    if (buttonType == "operator") {
+        if (firstNum != undefined && operator) {
+            displayValue = displayValue.slice(0, displayValue.length - 2) + button.textContent;
             display.textContent = displayValue;
+        } else if (secondNum != undefined) {
+            //dividing by 0 resets display
+            if (secondNum == 0 && operator == divide) {
+                alert("Don't divide by 0. Resetting display for your own safety.");
+                resetDisplay();
+            } else {
+                //update display with result
+                let result = performOperation() + button.textContent;
+                displayValue = result;
+                display.textContent = displayValue;
+            }
         }
-
     }
+    if(buttonType =="point"){
 
-    if (buttonType ==
-        "number" &&
-        operator &&
-        firstNum != undefined &&
-        secondNum != undefined) {
-        display.textContent = displayValue;
     }
 
 }
@@ -155,7 +144,13 @@ function setNumbers(e) {
     //sets first number
     if (buttonType == "number") {
         if (!operator) {
-            firstNum = parseInt(displayValue);
+            if (firstNum == 0 && button.textContent != "0") {
+                displayValue = button.textContent;
+                display.textContent = displayValue;
+                firstNum = parseInt(displayValue)
+            } else {
+                firstNum = parseInt(displayValue);
+            }
             if (firstNum == "00") {
                 firstNum = 0;
                 displayValue = "0";
@@ -186,10 +181,12 @@ function setOperator(e) {
     let button = e.target;
     let buttonType = e.target.dataset.attribute;
 
+    //dont set operator as first click
     if (buttonType == "operator") {
         if (displayValue === undefined) {
             return
         }
+
         switch (button.textContent) {
             case "+":
                 operator = add;

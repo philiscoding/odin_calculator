@@ -187,6 +187,9 @@ function setOperator(e) {
     let buttonType = e.target.dataset.attribute;
 
     if (buttonType == "operator") {
+        if (displayValue === undefined) {
+            return
+        }
         switch (button.textContent) {
             case "+":
                 operator = add;

@@ -24,6 +24,7 @@ let firstNum;
 let secondNum;
 let operator;
 let displayValue;
+
 let isDecimalA = false;
 let isDecimalB = false;
 
@@ -65,14 +66,24 @@ function updateDisplay(e) {
     let button = e.target;
     let buttonType = e.target.dataset.attribute;
 
+    if (displayValue.length >= 12) {
+        return;
+    }
+
     if (displayValue === undefined) {
-        displayValue = buttonType.textContent;
-        display.textContent = displayValue;
-    } else if (buttonType == "number" ||
-        buttonType == "operator") {
+        if (buttonType == "point") {
+            return;
+        } else {
+            displayValue = buttonType.textContent;
+            display.textContent = displayValue;
+        }
+
+    } else if (buttonType == "number") {
+
         displayValue += button.textContent;
         display.textContent = displayValue;
     }
+
 
     /* press equal sign */
     if (buttonType == "equal") {
@@ -85,10 +96,20 @@ function updateDisplay(e) {
         }
     }
 
-    if (buttonType == "operator") {
-        if (firstNum != undefined && operator) {
-            displayValue = displayValue.slice(0, displayValue.length - 2) + button.textContent;
+    if (buttonType == "operator" && displayValue != undefined) {
+        let lastItem = displayValue[displayValue.length - 1];
+
+        if (secondNum === undefined) {
+            if (lastItem == ".") {
+                isDecimalA = false;
+                displayValue = displayValue.slice(0, displayValue.length - 1);
+            }
+        }
+
+        if (firstNum != undefined && operator && secondNum == undefined) {
+            displayValue = displayValue.slice(0, displayValue.length - 1) + button.textContent;
             display.textContent = displayValue;
+
         } else if (secondNum != undefined) {
             //dividing by 0 resets display
             if (secondNum == 0 && operator == divide) {
@@ -100,7 +121,12 @@ function updateDisplay(e) {
                 displayValue = result;
                 display.textContent = displayValue;
             }
+
+        } else {
+            displayValue += button.textContent;
+            display.textContent = displayValue;
         }
+
     }
 
     if (buttonType == "point") {
@@ -111,7 +137,6 @@ function updateDisplay(e) {
             display.textContent = displayValue;
         }
     }
-
 }
 
 function resetDisplay() {
@@ -119,25 +144,69 @@ function resetDisplay() {
     secondNum = undefined;
     operator = undefined;
     displayValue = undefined;
-    isDecimalA =false;
-    isDecimalB= false;
+    isDecimalA = false;
+    isDecimalB = false;
     display.textContent = "";
 }
 
 function undo() {
-    //should remove last element from display and displayValue
-    displayValue = displayValue.slice(0, -1);
+    let lastItem = displayValue[displayValue.length - 1];
+
+    //undo last element from display and displayValue
+    displayValue = displayValue.toString().slice(0, -1);
     display.textContent = displayValue;
+
+    //undo the first number
+    if (secondNum === undefined && !operator) {
+        firstNum = displayValue;
+        isDecimalA = false;
+    }
+    //undo operator
+    else if (firstNum && operator && secondNum === undefined) {
+        operator = undefined;
+    } else {
+        //unset decimal if we remove a point
+        if (lastItem == ".") {
+            isDecimalB = false;
+        }
+        //undo second number by last index
+        secondNum = secondNum.toString().slice(0, -1);
+
+        //if second number gets deleted, set it to undefined
+        if (secondNum.length === 0) {
+            secondNum = undefined
+        } else {
+            secondNum = secondNum;
+        }
+    }
+
+    console.log(`displayValue: ${ displayValue}`);
+    console.log(`first num: ${firstNum}`);
+    console.log(`operator: ${operator}`);
+    console.log(`second num: ${secondNum}`);
+    console.log(`first num decimal: ${isDecimalA}`);
+    console.log(`second num decimal: ${isDecimalB}`);
 
 }
 
 function performOperation() {
     if (firstNum != undefined && secondNum != undefined && operator) {
-        let result = operate(firstNum, secondNum, operator);
+        let result = operate(+firstNum, +secondNum, operator);
+        let stringResult = result.toString();
         firstNum = result;
-        secondNum = null;
-        operator = null;
+        secondNum = undefined;
+        operator = undefined;
         isDecimalB = false;
+
+        //remove firstNum decimal if its still decimal after operation
+        if (!(result.toString().includes("."))) {
+            isDecimalA = false;
+        }
+        //truncate if number is too long
+        if (stringResult.length > 12) {
+            result = +stringResult.slice(0, 13);
+        }
+
         return result;
     }
 }
@@ -152,17 +221,16 @@ function setNumbers(e) {
         display.textContent = displayValue;
     }
 
-
     if (buttonType == "point") {
         //set first number decimal
         if (!operator && !isDecimalA) {
             isDecimalA = true;
-            firstNum = +displayValue;
+            firstNum = displayValue;
         }
         //set second number decimal
         else if (operator) {
             isDecimalB = true;
-            secondNum = +displayValue.slice(firstNum.toString().length + 1);
+            secondNum = displayValue.slice(firstNum.toString().length + 1);
             if (secondNum.toString() == "0") {
                 if (button.textContent == "0") {
                     secondNum = 0;
@@ -175,34 +243,35 @@ function setNumbers(e) {
     //sets first number
     if (buttonType == "number") {
         if (!operator) {
+            if (firstNum == "0.") {
+                displayValue = firstNum + button.textContent;
+                display.textContent = displayValue;
+                firstNum = displayValue;
+            }
             if (firstNum == 0 && button.textContent != "0") {
                 displayValue = button.textContent;
                 display.textContent = displayValue;
                 firstNum = displayValue;
             } else {
-                firstNum = +displayValue;
+                firstNum = displayValue;
             }
             if (firstNum == "00") {
                 firstNum = 0;
                 displayValue = "0";
                 display.textContent = displayValue;
             }
-            console.log(`displayValue: ${ displayValue}`);
-            console.log(`first num: ${firstNum}`);
-            console.log(`operator: ${operator}`);
+
 
         }
         //sets second number
         else {
-            secondNum = +displayValue.slice(firstNum.toString().length + 1);
+            secondNum = displayValue.slice(firstNum.toString().length + 1);
             if (secondNum.toString() == "0") {
                 if (button.textContent == "0") {
                     secondNum = 0;
                     displayValue = displayValue.slice(0, -1)
                 }
             }
-            console.log(`displayValue: ${displayValue}`);
-            console.log(`first num: ${firstNum},operator: ${operator.toString()},second num: ${ secondNum}`);
         }
     }
 
@@ -211,29 +280,27 @@ function setNumbers(e) {
 //sets operator
 function setOperator(e) {
     let button = e.target;
-    let buttonType = e.target.dataset.attribute;
+    let buttonType = button.dataset.attribute;
 
-    //don't set operator as first click
+    //if display is empty dont set operator
     if (buttonType == "operator") {
         if (displayValue === undefined) {
-            return
+            return;
         }
+    }
 
-        switch (button.textContent) {
-            case "+":
-                operator = add;
-                break;
-            case "-":
-                operator = subtract;
-                break;
-            case "x":
-                operator = multiply;
-                break;
-            case "/":
-                operator = divide;
-                break;
-        }
-        console.log(`displayValue: ${displayValue}`);
-        console.log(`first num: ${firstNum}, operator: ${operator.toString()}, second num: ${secondNum}`);
+    switch (button.textContent) {
+        case "+":
+            operator = add;
+            break;
+        case "-":
+            operator = subtract;
+            break;
+        case "x":
+            operator = multiply;
+            break;
+        case "/":
+            operator = divide;
+            break;
     }
 }
